@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import {
   CreateMeetingData,
@@ -46,6 +47,7 @@ export async function createMeeting(data: CreateMeetingData): Promise<{ meeting?
     return { error: '会議の作成に失敗しました' }
   }
 
+  revalidatePath('/meetings')
   return { meeting: mapToMeeting(meeting) }
 }
 
@@ -196,6 +198,8 @@ export async function updateMeeting(
     return { error: '会議の更新に失敗しました' }
   }
 
+  revalidatePath('/meetings')
+  revalidatePath(`/meetings/${id}`)
   return { meeting: mapToMeeting(meeting) }
 }
 
@@ -222,6 +226,7 @@ export async function deleteMeeting(id: string): Promise<{ success: boolean; err
     return { success: false, error: '会議の削除に失敗しました' }
   }
 
+  revalidatePath('/meetings')
   return { success: true }
 }
 
