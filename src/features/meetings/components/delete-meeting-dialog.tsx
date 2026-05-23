@@ -64,7 +64,7 @@ export function DeleteMeetingDialog({
           role="dialog"
           aria-modal="true"
         >
-          <div className="flex min-h-full items-center justify-center p-4">
+          <div className="flex min-h-screen items-center justify-center p-4">
             <div
               className="fixed inset-0 bg-black bg-opacity-25 transition-opacity"
               onClick={handleClose}
