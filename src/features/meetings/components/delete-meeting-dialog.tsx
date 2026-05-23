@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { deleteMeeting } from '@/features/meetings/actions/meeting-actions'
 
@@ -17,6 +18,18 @@ export function DeleteMeetingDialog({
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleOpen = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsOpen(true)
+  }
+
+  const handleClose = () => {
+    if (!isLoading) {
+      setIsOpen(false)
+      setError(null)
+    }
+  }
 
   const handleDelete = async () => {
     setIsLoading(true)
@@ -38,22 +51,29 @@ export function DeleteMeetingDialog({
       {/* 削除ボタン */}
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={handleOpen}
         className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
       >
         削除
       </button>
 
-      {/* 確認ダイアログ */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* 確認ダイアログ（Portal で document.body に描画） */}
+      {isOpen && createPortal(
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+        >
           <div className="flex min-h-full items-center justify-center p-4">
             <div
               className="fixed inset-0 bg-black bg-opacity-25 transition-opacity"
-              onClick={() => setIsOpen(false)}
+              onClick={handleClose}
             />
 
-            <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:p-6 sm:my-8 sm:w-full sm:max-w-lg">
+            <div
+              className="relative z-10 transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:p-6 sm:my-8 sm:w-full sm:max-w-lg"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="sm:flex sm:items-start">
                 <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
                   <svg
@@ -97,7 +117,7 @@ export function DeleteMeetingDialog({
                 <button
                   type="button"
                   disabled={isLoading}
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleClose}
                   className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   キャンセル
@@ -105,7 +125,8 @@ export function DeleteMeetingDialog({
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )
