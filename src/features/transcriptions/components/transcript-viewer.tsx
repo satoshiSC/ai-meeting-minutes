@@ -1,18 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-
-/**
- * 文字起こしセグメント
- */
-export interface TranscriptSegment {
-  id: string
-  start: number // 秒
-  end: number // 秒
-  speakerId: string
-  speakerName: string
-  text: string
-}
+import type { TranscriptSegment } from '@/lib/types/transcription'
 
 interface TranscriptViewerProps {
   segments: TranscriptSegment[]
@@ -32,39 +21,22 @@ function formatTime(seconds: number): string {
  */
 export function TranscriptViewer({ segments }: TranscriptViewerProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedSpeaker, setSelectedSpeaker] = useState<string | 'all'>('all')
 
-  // スピーカー一覧
-  const speakers = useMemo(() => {
-    const speakerMap = new Map<string, string>()
-    segments.forEach(seg => {
-      speakerMap.set(seg.speakerId, seg.speakerName)
-    })
-    return Array.from(speakerMap.entries()).map(([id, name]) => ({ id, name }))
-  }, [segments])
-
-  // 検索・フィルター処理
+  // 検索フィルター処理
   const filteredSegments = useMemo(() => {
-    return segments.filter(seg => {
-      // スピーカーフィルター
-      if (selectedSpeaker !== 'all' && seg.speakerId !== selectedSpeaker) {
-        return false
-      }
+    if (!searchQuery.trim()) return segments
 
-      // 検索クエリ
-      if (searchQuery.trim()) {
-        return seg.text.toLowerCase().includes(searchQuery.toLowerCase())
-      }
-
-      return true
-    })
-  }, [segments, searchQuery, selectedSpeaker])
+    return segments.filter(seg =>
+      seg.text.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [segments, searchQuery])
 
   // ハイライト表示用のテキスト生成
   const highlightText = (text: string) => {
     if (!searchQuery.trim()) return text
 
-    const parts = text.split(new RegExp(`(${searchQuery})`, 'gi'))
+    const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const parts = text.split(new RegExp(`(${escaped})`, 'gi'))
     return parts.map((part, i) =>
       part.toLowerCase() === searchQuery.toLowerCase() ? (
         <mark key={i} className="bg-yellow-200 px-0.5 rounded">
@@ -79,7 +51,7 @@ export function TranscriptViewer({ segments }: TranscriptViewerProps) {
   // コピー機能
   const copyToClipboard = async () => {
     const text = filteredSegments
-      .map(seg => `[${formatTime(seg.start)}] ${seg.speakerName}: ${seg.text}`)
+      .map(seg => `[${formatTime(seg.start)}] ${seg.text}`)
       .join('\n')
 
     try {
@@ -93,7 +65,7 @@ export function TranscriptViewer({ segments }: TranscriptViewerProps) {
   // 全文コピー
   const copyFullTranscript = async () => {
     const text = segments
-      .map(seg => `[${formatTime(seg.start)}] ${seg.speakerName}: ${seg.text}`)
+      .map(seg => `[${formatTime(seg.start)}] ${seg.text}`)
       .join('\n')
 
     try {
@@ -131,20 +103,6 @@ export function TranscriptViewer({ segments }: TranscriptViewerProps) {
             />
           </svg>
         </div>
-
-        {/* スピーカーフィルター */}
-        <select
-          value={selectedSpeaker}
-          onChange={(e) => setSelectedSpeaker(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-        >
-          <option value="all">すべてのスピーカー</option>
-          {speakers.map(speaker => (
-            <option key={speaker.id} value={speaker.id}>
-              {speaker.name}
-            </option>
-          ))}
-        </select>
 
         {/* コピーボタン */}
         <div className="flex gap-2">
@@ -184,21 +142,10 @@ export function TranscriptViewer({ segments }: TranscriptViewerProps) {
                   className="p-4 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex gap-4">
-                    {/* 時刻 */}
                     <div className="flex-shrink-0 w-16 text-xs text-gray-500 font-mono pt-0.5">
                       {formatTime(segment.start)}
                     </div>
-
-                    {/* 内容 */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <span className="font-medium text-gray-900 text-sm">
-                          {segment.speakerName}
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          {segment.speakerId}
-                        </span>
-                      </div>
                       <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
                         {highlightText(segment.text)}
                       </p>

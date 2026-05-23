@@ -8,7 +8,7 @@
 - **Language**: TypeScript (strict mode)
 - **Styling**: Tailwind CSS
 - **Backend**: Supabase (Auth, Database, Storage)
-- **AI**: OpenAI API (Whisper, GPT-4)
+- **AI**: Groq API（無料）- Whisper（文字起こし）、Llama 3.3（要約）
 
 ## 認証機能
 
@@ -36,6 +36,9 @@ NEXT_PUBLIC_SUPABASE_URL=your-project-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+# Groq API キー（無料）
+GROQ_API_KEY=your-groq-api-key
 ```
 
 #### 2. Supabase プロジェクトの作成
@@ -44,8 +47,15 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 2. 新規プロジェクトを作成
 3. Authentication → Providers で Google OAuth を有効化
 4. 取得した URL とキーを `.env.local` に設定
+5. `supabase/migrations/` 内のSQLをSupabase SQL Editorで実行
 
-#### 3. 開発サーバーの起動
+#### 3. Groq API キーの取得
+
+1. [Groq Console](https://console.groq.com) でアカウントを作成（無料）
+2. API Keys ページで新しいキーを作成
+3. `.env.local` の `GROQ_API_KEY` に設定
+
+#### 4. 開発サーバーの起動
 
 ```bash
 npm install
@@ -63,6 +73,10 @@ src/
 │   ├── (dashboard)/              # ダッシュボードページ（認証必要）
 │   └── auth/                     # OAuth コールバック
 ├── features/                     # 機能別モジュール
+│   ├── ai/                       # AI処理（文字起こし・要約）
+│   ├── audio/                    # 音声ファイル管理
+│   ├── summaries/                # 要約表示
+│   ├── transcriptions/           # 文字起こし表示
 │   └── auth/
 │       ├── actions/              # Server Actions
 │       ├── components/           # UI コンポーネント
@@ -104,6 +118,26 @@ src/
 - 1 ファイル 300 行以内を遵守
 - Server Component を優先
 - 日本語コメントを使用
+
+## AI 機能
+
+### 文字起こし
+
+- Groq の Whisper Large V3 を使用（無料）
+- 日本語に最適化
+- タイムスタンプ付きセグメントで表示
+
+### 要約
+
+- Groq の Llama 3.3 70B を使用（無料）
+- 会議の概要、重要ポイント、アクションアイテムを自動抽出
+
+### 処理フロー
+
+1. 会議を作成
+2. 音声ファイルをアップロード
+3. 「AI で文字起こし・要約する」ボタンをクリック
+4. 自動的に文字起こし → 要約が生成される
 
 ## ライセンス
 
