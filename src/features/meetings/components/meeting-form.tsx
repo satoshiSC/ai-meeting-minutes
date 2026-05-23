@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createMeeting, updateMeeting } from '@/features/meetings/actions/meeting-actions'
 import type { Meeting, CreateMeetingData, UpdateMeetingData } from '@/lib/types/meeting'
 
@@ -10,6 +11,7 @@ interface MeetingFormProps {
 }
 
 export function MeetingForm({ meeting, onSuccess }: MeetingFormProps) {
+  const router = useRouter()
   const [title, setTitle] = useState(meeting?.title ?? '')
   const [description, setDescription] = useState(meeting?.description ?? '')
   const [error, setError] = useState<string | null>(null)
@@ -35,7 +37,15 @@ export function MeetingForm({ meeting, onSuccess }: MeetingFormProps) {
       setError(result.error)
       setIsLoading(false)
     } else {
-      onSuccess?.()
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        const redirectPath = result.meeting
+          ? `/meetings/${result.meeting.id}`
+          : '/meetings'
+        router.push(redirectPath)
+        router.refresh()
+      }
     }
   }
 
