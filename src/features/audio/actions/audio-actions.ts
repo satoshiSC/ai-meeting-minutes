@@ -1,7 +1,8 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import type { Meeting } from '@/lib/types/meeting'
+import type { Meeting, MeetingStatus } from '@/lib/types/meeting'
 
 /**
  * 音声ファイルの許容形式
@@ -127,11 +128,14 @@ export async function uploadAudioFile(
       return { success: false, error: '会議情報の更新に失敗しました' }
     }
 
+    revalidatePath(`/meetings/${meetingId}`)
+    revalidatePath('/meetings')
+
     return {
       success: true,
       meeting: mapToMeeting(updatedMeeting)
     }
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '予期せぬエラーが発生しました'
@@ -224,7 +228,7 @@ function mapToMeeting(dbData: Record<string, unknown>): Meeting {
     description: dbData.description as string | null,
     audioStoragePath: dbData.audio_storage_path as string | null,
     audioDuration: dbData.audio_duration as number | null,
-    status: dbData.status as Meeting['status'],
+    status: dbData.status as MeetingStatus,
     language: dbData.language as string,
     createdAt: new Date(dbData.created_at as string).toISOString(),
     updatedAt: new Date(dbData.updated_at as string).toISOString()

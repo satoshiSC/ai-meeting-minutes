@@ -40,13 +40,7 @@ export default async function UploadPage({ params }: UploadPageProps) {
           <h2 className="text-lg font-medium text-gray-900">音声ファイル</h2>
         </div>
         <div className="p-6">
-          <AudioUpload
-            meetingId={meeting.id}
-            onSuccess={() => {
-              // リダイレクトまたはリフレッシュ
-              window.location.href = `/meetings/${meeting.id}`
-            }}
-          />
+          <AudioUpload meetingId={meeting.id} />
         </div>
       </div>
 

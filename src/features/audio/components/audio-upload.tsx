@@ -1,15 +1,16 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { uploadAudioFile } from '@/features/audio/actions/audio-actions'
 import { ALLOWED_EXTENSIONS, MAX_FILE_SIZE } from '@/features/audio/actions/audio-actions'
 
 interface AudioUploadProps {
   meetingId: string
-  onSuccess?: () => void
 }
 
-export function AudioUpload({ meetingId, onSuccess }: AudioUploadProps) {
+export function AudioUpload({ meetingId }: AudioUploadProps) {
+  const router = useRouter()
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -55,7 +56,6 @@ export function AudioUpload({ meetingId, onSuccess }: AudioUploadProps) {
     setUploadProgress(0)
     setError(null)
 
-    // アップロードシミュレーション（進捗表示のため）
     const progressInterval = setInterval(() => {
       setUploadProgress(prev => Math.min(prev + 10, 90))
     }, 200)
@@ -71,14 +71,19 @@ export function AudioUpload({ meetingId, onSuccess }: AudioUploadProps) {
 
       if (result.error) {
         setError(result.error)
-      } else {
-        setSelectedFile(null)
-        onSuccess?.()
+        setIsUploading(false)
+        setTimeout(() => setUploadProgress(0), 1000)
+        return
       }
+
+      // 成功時は会議詳細ページに遷移
+      setTimeout(() => {
+        router.push(`/meetings/${meetingId}`)
+        router.refresh()
+      }, 500)
     } catch {
       clearInterval(progressInterval)
       setError('アップロード中にエラーが発生しました')
-    } finally {
       setIsUploading(false)
       setTimeout(() => setUploadProgress(0), 1000)
     }

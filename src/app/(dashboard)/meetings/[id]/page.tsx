@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getMeeting } from '@/features/meetings/actions/meeting-actions'
 import { DeleteMeetingDialog } from '@/features/meetings/components/delete-meeting-dialog'
+import { AudioPlayer } from '@/features/audio/components/audio-player'
 import { TranscriptViewer } from '@/features/transcriptions/components/transcript-viewer'
 import type { TranscriptSegment } from '@/features/transcriptions/components/transcript-viewer'
 
@@ -59,6 +60,44 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
             meetingId={meeting.id}
             meetingTitle={meeting.title}
           />
+        </div>
+      </div>
+
+      {/* 音声ファイル */}
+      <div className="rounded-lg bg-white shadow">
+        <div className="px-6 py-5 border-b border-gray-200">
+          <h2 className="text-lg font-medium text-gray-900">音声ファイル</h2>
+        </div>
+        <div className="p-6">
+          {meeting.audioStoragePath ? (
+            <div className="space-y-4">
+              <AudioPlayer storagePath={meeting.audioStoragePath} />
+              {meeting.audioDuration && (
+                <p className="text-sm text-gray-500">
+                  音声の長さ: {Math.floor(meeting.audioDuration / 60)}分{meeting.audioDuration % 60}秒
+                </p>
+              )}
+            </div>
+          ) : meeting.status === 'draft' ? (
+            <div className="text-center py-4">
+              <p className="text-sm text-gray-500 mb-4">
+                まだ音声ファイルがアップロードされていません
+              </p>
+              <Link
+                href={`/meetings/${meeting.id}/upload`}
+                className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+                音声ファイルをアップロード
+              </Link>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 text-center py-4">
+              音声ファイルを処理中です...
+            </p>
+          )}
         </div>
       </div>
 
